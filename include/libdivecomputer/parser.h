@@ -203,6 +203,12 @@ typedef struct dc_tank_t {
      * the same transmitter log the same cylinder, so this identifies the tank
      * across computers regardless of the gas mix each had programmed. */
     unsigned int serial;
+    /* Submersion patch (tank transmitter slot): the physical transmitter
+     * slot the device paired this tank's transmitter to, plus one (so 1 is
+     * the first slot), or zero when the device does not report one. A
+     * logbook export that names slots but no serial can then be matched to
+     * the downloads that show which serial sat in which slot. */
+    unsigned int slot;
 } dc_tank_t;
 
 typedef enum dc_decomodel_type_t {

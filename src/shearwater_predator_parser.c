@@ -135,6 +135,7 @@ typedef struct shearwater_predator_tank_t {
 	unsigned int pressure_max;
 	unsigned int pressure_reserve;
 	unsigned int serial;
+	unsigned int slot; // Submersion patch: physical slot plus one, 0 unknown.
 	char name[2];
 	dc_usage_t usage;
 } shearwater_predator_tank_t;
@@ -277,6 +278,7 @@ shearwater_common_parser_create (dc_parser_t **out, dc_context_t *context, const
 		parser->tank[i].pressure_max = 0;
 		parser->tank[i].pressure_reserve = 0;
 		parser->tank[i].serial = 0;
+		parser->tank[i].slot = 0;
 		memset (parser->tank[i].name, 0, sizeof (parser->tank[i].name));
 		parser->tank[i].usage = DC_USAGE_NONE;
 		parser->tankidx[i] = i;
@@ -748,6 +750,10 @@ shearwater_predator_parser_cache (shearwater_predator_parser_t *parser)
 		if (tank[i].active) {
 			parser->tankidx[i] = parser->ntanks;
 			parser->tank[parser->ntanks] = tank[i];
+			// Submersion patch (tank transmitter slot): compaction drops the
+			// raw index, so keep it. Only T1 to T4 are transmitter slots;
+			// 4 and 5 are the HP CCR diluent and oxygen sensors.
+			parser->tank[parser->ntanks].slot = i < 4 ? i + 1 : 0;
 			parser->ntanks++;
 		} else {
 			parser->tankidx[i] = UNDEFINED;
@@ -820,6 +826,7 @@ shearwater_predator_parser_get_field (dc_parser_t *abstract, dc_field_type_t typ
 			tank->beginpressure = parser->tank[flags].beginpressure * 2 * PSI / BAR;
 			tank->endpressure   = parser->tank[flags].endpressure   * 2 * PSI / BAR;
 			tank->serial = parser->tank[flags].serial;
+			tank->slot = parser->tank[flags].slot;
 			tank->gasmix = DC_GASMIX_UNKNOWN;
 			if (shearwater_predator_is_ccr (parser->divemode) && !parser->hpccr) {
 				switch (parser->tank[flags].name[0]) {

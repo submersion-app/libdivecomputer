@@ -385,8 +385,12 @@ dc_parser_get_field (dc_parser_t *parser, dc_field_type_t type, unsigned int fla
 	// a transmitter serial assign dc_tank_t.serial, so define it here for
 	// every other backend rather than leaving it to the caller's
 	// initialisation.
-	if (type == DC_FIELD_TANK && value != NULL)
+	if (type == DC_FIELD_TANK && value != NULL) {
 		((dc_tank_t *) value)->serial = 0;
+		// Submersion patch (tank transmitter slot): same rule, zero is
+		// "not reported".
+		((dc_tank_t *) value)->slot = 0;
+	}
 
 	return parser->vtable->field (parser, type, flags, value);
 }
