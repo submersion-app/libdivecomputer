@@ -148,6 +148,11 @@ typedef enum dc_usage_t {
 	DC_USAGE_OXYGEN,
 	DC_USAGE_DILUENT,
 	DC_USAGE_SIDEMOUNT,
+	/* Submersion patch (Avelo Hydrotank): the Avelo Dive System's cylinder,
+	 * which takes water in for buoyancy. The water squeezes the gas, so its
+	 * pressure rises as the diver gets heavier and does not measure the gas
+	 * breathed. Shearwater's Avelo mode logs it on transmitter slot T1. */
+	DC_USAGE_HYDROTANK,
 } dc_usage_t;
 
 typedef struct dc_gasmix_t {
