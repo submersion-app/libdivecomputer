@@ -706,6 +706,15 @@ shearwater_predator_parser_cache (shearwater_predator_parser_t *parser)
 		divemode = data[parser->opening[4] + (pnf ? 1 : 112)];
 	}
 
+	// Submersion patch (Avelo Hydrotank): an Avelo sample carries only the
+	// T1 transmitter's pressure, which is the Avelo Hydrotank's. Tag it here,
+	// on the transmitter slot, because the tank list compacted below no
+	// longer knows which slot a tank came from. The tag replaces a sidemount
+	// tag from the GTR mode byte: the Hydrotank is one backmounted cylinder.
+	if (divemode == M_AVELO && tank[0].active) {
+		tank[0].usage = DC_USAGE_HYDROTANK;
+	}
+
 	// Get the correct model number from the final block.
 	if (parser->final != UNDEFINED) {
 		parser->model = data[parser->final + 13];
