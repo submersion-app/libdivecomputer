@@ -86,6 +86,15 @@
 #define M_FREEDIVE 7
 #define M_AVELO    12
 
+// Submersion patch (Avelo samples): scales of the Avelo sample's buoyancy and
+// RMV fields. Both are inferred, not documented: they reproduce Shearwater
+// Cloud's own Avelo statistics on eight real dives, all from an
+// imperial-unit computer, and nothing yet shows whether a metric computer
+// stores the same units. Buoyancy is grams; RMV is hundredths of a litre per
+// minute.
+#define AVELO_BUOYANCY_KG_PER_UNIT 0.001
+#define AVELO_RMV_LPM_PER_UNIT     0.01
+
 #define AI_OFF   0
 #define AI_HPCCR 4
 #define AI_ON    5
@@ -1137,6 +1146,35 @@ shearwater_predator_parser_samples_foreach (dc_parser_t *abstract, dc_sample_cal
 				if (data[offset + pnf + 21] < 0xF0) {
 					sample.rbt = data[offset + pnf + 21];
 					if (callback) callback (DC_SAMPLE_RBT, &sample, userdata);
+				}
+			}
+
+			// Submersion patch (Avelo samples): the Avelo sample repurposes
+			// the bytes a dive sample uses for the CCR status, the first O2
+			// cell and two words the parser does not read. Each skips the
+			// special codes the computer logs when it has no value.
+			if (type == LOG_RECORD_AVELO_SAMPLE) {
+				// Gas remaining, percent; 0xFE with no transmitter comms.
+				unsigned int gasremaining = data[offset + pnf + 10];
+				if (gasremaining <= 100) {
+					sample.gasremaining = gasremaining;
+					if (callback) callback (DC_SAMPLE_GASREMAINING, &sample, userdata);
+				}
+
+				// Buoyancy, signed; 0x7FF0 to 0x7FFF are codes (0x7FFE when
+				// not available).
+				unsigned int buoyancy = array_uint16_be (data + offset + pnf + 11);
+				if (buoyancy < 0x7FF0 || buoyancy > 0x7FFF) {
+					sample.buoyancy = (signed short) buoyancy * AVELO_BUOYANCY_KG_PER_UNIT;
+					if (callback) callback (DC_SAMPLE_BUOYANCY, &sample, userdata);
+				}
+
+				// RMV; 0xFFF0 and up are codes (0xFFFA before the dive,
+				// 0xFFF8 and 0xFFF9 while computing, 0xFFFE no comms).
+				unsigned int rmv = array_uint16_be (data + offset + pnf + 29);
+				if (rmv < 0xFFF0) {
+					sample.rmv = rmv * AVELO_RMV_LPM_PER_UNIT;
+					if (callback) callback (DC_SAMPLE_RMV, &sample, userdata);
 				}
 			}
 
