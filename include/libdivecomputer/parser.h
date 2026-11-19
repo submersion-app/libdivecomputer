@@ -48,6 +48,14 @@ typedef enum dc_sample_type_t {
 	DC_SAMPLE_DECO,
 	DC_SAMPLE_GASMIX,
 	DC_SAMPLE_LOCATION,
+	/* Submersion patch (Avelo samples): values Shearwater's Avelo mode logs
+	 * for the Avelo Dive System. DC_SAMPLE_BUOYANCY is the computer's
+	 * buoyancy figure in kilograms (negative is heavy), DC_SAMPLE_GASREMAINING
+	 * the gas left in the Hydrotank as a percentage, and DC_SAMPLE_RMV the
+	 * computer's respiratory minute volume in litres per minute. */
+	DC_SAMPLE_BUOYANCY,
+	DC_SAMPLE_GASREMAINING,
+	DC_SAMPLE_RMV,
 } dc_sample_type_t;
 
 typedef enum dc_field_type_t {
@@ -302,6 +310,10 @@ typedef union dc_sample_value_t {
 	} deco;
 	unsigned int gasmix; /* Gas mix index */
 	dc_location_t location;
+	/* Submersion patch (Avelo samples): see DC_SAMPLE_BUOYANCY. */
+	double buoyancy; /* Kilograms, negative is heavy */
+	unsigned int gasremaining; /* Percent */
+	double rmv; /* Litres per minute */
 } dc_sample_value_t;
 
 typedef struct dc_parser_t dc_parser_t;
